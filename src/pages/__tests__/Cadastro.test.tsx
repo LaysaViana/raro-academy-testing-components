@@ -1,11 +1,11 @@
 import { Cadastro } from '../Cadastro';
-
 import { render, screen } from '@testing-library/react'
 import faker from '@faker-js/faker';
 import { validaErroApresentadoEmTela } from '../../helpers/teste/validaErroApresentadoEmTela';
 import { validaErroNaoApresentadoEmTela } from '../../helpers/teste/validaErroNaoApresentadoEmTela';
 import { setValorInput } from '../../helpers/teste/setValorInput';
 import axios from 'axios';
+import { Button } from '../../components/Button';
 
 const makeSut = () => {
   return render(
@@ -25,7 +25,8 @@ describe('Cadastro Page', () => {
   });
 
   it('deve validar o formato de e-mail no cadastro', () => {
-
+    const campoEmail = screen.getByPlaceholderText("e-mail");
+    validaErroNaoApresentadoEmTela(campoEmail, "laysa.viana@outlook.com", "Formato de e-mail inválido")
   });
 
   describe('deve validar os critérios de aceitação da senha', () => {
@@ -70,10 +71,35 @@ describe('Cadastro Page', () => {
     });
   });
 
-  it('deve garantir que senha e confirmação sejam iguais', () => {});
+  it('deve garantir que senha e confirmação sejam iguais', () => {
+    const senha = screen.getByPlaceholderText("Senha");
+    const confirmacaoSenha = screen.getByPlaceholderText("Confirmação de Senha");
+    setValorInput(senha, "S3nh@!123");
+    validaErroNaoApresentadoEmTela(confirmacaoSenha, "S3nh@!123", "Senhas não conferem")
+  });
 
   it('deve enviar o formulário se todos os dados estiverem preenchidos corretamente', () => {
+    const nome = screen.getByPlaceholderText('Nome');
+    const email = screen.getByPlaceholderText('e-mail');
+    const senha = screen.getByPlaceholderText('Senha');
+    const confirmacaoSenha = screen.getByPlaceholderText('Confirmação de Senha');
+    const codigoAcesso = screen.getByPlaceholderText('Código de Acesso');
+    const botao = screen.getByText('Cadastrar');
+    const dados = {
+      nome: faker.name.firstName(),
+      email: faker.internet.email(),
+      senha: 'S3nh@!123',
+      codigoAcesso: faker.lorem.paragraph(),
+    };
 
+    // construcao
+    setValorInput(nome, dados.nome);
+    setValorInput(email, dados.email);
+    setValorInput(senha, dados.senha);
+    setValorInput(confirmacaoSenha, dados.senha);
+    setValorInput(codigoAcesso, dados.codigoAcesso);
+
+    expect(botao).toBeEnabled();
   });
 
   it('deve notificar o usuário que o cadastro foi efetuado com sucesso', () => {
@@ -107,5 +133,35 @@ describe('Cadastro Page', () => {
     );
   });
 
-  it('deve apresentar os erros de validação para o usuário, caso a API retorne erro', () => {});
+  it('deve apresentar os erros de validação para o usuário, caso a API retorne erro', () => {
+    //setup
+    jest.spyOn(axios, 'post').mockResolvedValue('ok');
+    const nome = screen.getByPlaceholderText('Nome');
+    const email = screen.getByPlaceholderText('e-mail');
+    const senha = screen.getByPlaceholderText('Senha');
+    const confirmacaoSenha = screen.getByPlaceholderText('Confirmação de Senha');
+    const codigoAcesso = screen.getByPlaceholderText('Código de Acesso');
+    const botao = screen.getByText('Cadastrar');
+    const dados = {
+      nome: faker.name.firstName(),
+      email: faker.internet.email(),
+      senha: 'S3nh@!123',
+      codigoAcesso: faker.lorem.paragraph(),
+    };
+
+    // construcao
+    setValorInput(nome, dados.nome);
+    setValorInput(email, dados.email);
+    setValorInput(senha, dados.senha);
+    setValorInput(confirmacaoSenha, dados.senha);
+    setValorInput(codigoAcesso, dados.codigoAcesso);
+    botao.click();
+
+    // asserts
+    expect(axios.post).toHaveBeenCalledWith(
+      expect.stringContaining('/auth/cadastrar'),
+      dados
+    );
+
+  });
 });
