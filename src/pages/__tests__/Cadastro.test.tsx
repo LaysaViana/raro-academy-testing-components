@@ -4,7 +4,7 @@ import faker from '@faker-js/faker';
 import { validaErroApresentadoEmTela } from '../../helpers/teste/validaErroApresentadoEmTela';
 import { validaErroNaoApresentadoEmTela } from '../../helpers/teste/validaErroNaoApresentadoEmTela';
 import { setValorInput } from '../../helpers/teste/setValorInput';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { Button } from '../../components/Button';
 
 const makeSut = () => {
@@ -133,9 +133,27 @@ describe('Cadastro Page', () => {
     );
   });
 
-  it('deve apresentar os erros de validação para o usuário, caso a API retorne erro', () => {
+  it('deve apresentar os erros de validação para o usuário, caso a API retorne erro', async () => {
     //setup
-    jest.spyOn(axios, 'post').mockResolvedValue('ok');
+    //objeto lançado pela excessão do axios.
+    const dadosMock: AxiosError = {
+      config: {},
+      code: '400',
+      request: {},
+      response: {
+        status: 400,
+        statusText: '',
+        headers: {},
+        config: {},
+        data: { statusCode: '400', message: 'usuario_já_existe', error: "BadRequest" }
+      },
+      isAxiosError: true,
+      toJSON: () => ({}),
+      name: '',
+      message: ''
+    };
+    // mock para permitir que axios retorne uma excessão, no caso o http 400.
+    jest.spyOn(axios, 'post').mockRejectedValueOnce(dadosMock)
     const nome = screen.getByPlaceholderText('Nome');
     const email = screen.getByPlaceholderText('e-mail');
     const senha = screen.getByPlaceholderText('Senha');
@@ -158,10 +176,9 @@ describe('Cadastro Page', () => {
     botao.click();
 
     // asserts
-    expect(axios.post).toHaveBeenCalledWith(
-      expect.stringContaining('/auth/cadastrar'),
-      dados
-    );
+    //Esse método findByText por ser uma promise é possível esperar ele, assim esperando uma renderização da tela.
+    const validacao = await screen.findByText("usuario_já_existe");
+    expect(validacao).toBeInTheDocument();
 
   });
 });
