@@ -145,7 +145,7 @@ describe('Cadastro Page', () => {
         statusText: '',
         headers: {},
         config: {},
-        data: { statusCode: '400', message: 'usuario_já_existe', error: "BadRequest" }
+        data: { statusCode: '400', message: 'usuario_ja_existe', error: "BadRequest" }
       },
       isAxiosError: true,
       toJSON: () => ({}),
@@ -177,7 +177,7 @@ describe('Cadastro Page', () => {
 
     // asserts
     //Esse método findByText por ser uma promise é possível esperar ele, assim esperando uma renderização da tela.
-    const validacao = await screen.findByText("usuario_já_existe");
+    const validacao = await screen.findByText("O usuário já existe");
     expect(validacao).toBeInTheDocument();
 
   });
