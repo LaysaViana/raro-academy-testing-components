@@ -48,7 +48,12 @@ export const Cadastro = () => {
       );
     }
     catch (err: any) {
-      setErro(err.response.data.message)
+      if (err.response.data.message === "usuario_ja_existe") {
+        setErro("O usuário já existe");
+      }
+      else {
+        setErro("Houve um erro ao cadastrar o usuário");
+      }
     }
   }
 
